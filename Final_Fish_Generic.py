@@ -20,7 +20,7 @@ clock = pg.time.Clock()
 
 # Display:
 GRID = False
-OBSTACLES = True
+OBSTACLES = False
 WIDTH = 1200
 HEIGHT = 800
 FPS = 60
@@ -28,16 +28,16 @@ BACKGROUND = (26, 193, 221)
 
 # Obstacle Parameters:
 O_RANGE = 100
-O_RADIUS = 100
-O_COUNT = 3
+O_RADIUS = 25
+O_COUNT = 1
 
 # Fish setup:
-RECT_FISH = False
+RECT_FISH = True
 RADIUS = True
 CLOSEST_OBSTACLE = False
-F_COUNT = 0
+F_COUNT = 50
 F_SPEED = 100
-F_RANGE = 200
+F_RANGE = 100
 
 FramePerSec = pg.time.Clock()
 
@@ -275,74 +275,50 @@ def spawn_fish(obstacles):
             fish.rect.center = pos
             fish.pos = vec(pos)
             return fish
-        
+
 # -----------------------------------------------------------------------------
 # Game Loop:
 # -----------------------------------------------------------------------------
-O_RADIUS_values = list(range(10, 100, 10))
-all_collision_counts = []
+for _ in range(O_COUNT):
+    obstacles, obstacle_positions = Obstacle.create_obstacles()
 
-for O_RADIUS in O_RADIUS_values:
-    O_RADIUS_collision_counts = []
-    for _ in range(10):
-        print(F"Running simulation with O_RADIUS = {O_RADIUS}")
-        for _ in range(O_COUNT):
-            obstacles, obstacle_positions = Obstacle.create_obstacles()
+fishes = []
 
-        fishes = []
+for _ in range(F_COUNT):
+    new_fish = spawn_fish(obstacles)
+    fishes.append(new_fish)
 
-        for _ in range(F_COUNT):
-            new_fish = spawn_fish(obstacles)
-            fishes.append(new_fish)
+start_time = time.time()
 
-        start_time = time.time()
-        collision_count = 0
+while True:
+    dt = clock.tick(FPS) / 1000
+    for event in pg.event.get():
+        if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+            pg.quit()
+            pg.exit()
 
-        while time.time() - start_time < 30:
-            dt = clock.tick(FPS) / 1000
-            for event in pg.event.get():
-                if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
-                    pg.quit()
-                    pg.exit()
+    displaysurface.fill(BACKGROUND)
 
-            displaysurface.fill(BACKGROUND)
+    if OBSTACLES == True:
+        for obstacle in obstacles:
+            displaysurface.blit(obstacle.surf, obstacle.rect)
+            pg.draw.circle(displaysurface, (255, 0, 0), obstacle.rect.center, O_RANGE, 2)
 
+    for fish in fishes:
+        fish.draw(displaysurface)
+        fish.update(dt, F_SPEED)
+        if RECT_FISH == True:
+            pg.draw.rect(displaysurface, (0, 255, 0), fish.rect, 2)
+        if RADIUS == True:
+            pg.draw.circle(displaysurface, (255, 0, 0), (int(fish.pos.x), int(fish.pos.y)), F_RANGE, 2)
+        if CLOSEST_OBSTACLE == True:
             if OBSTACLES == True:
-                for obstacle in obstacles:
-                    displaysurface.blit(obstacle.surf, obstacle.rect)
-                    pg.draw.circle(displaysurface, (255, 0, 0), obstacle.rect.center, O_RANGE, 2)
+                pg.draw.line(displaysurface, (0, 255, 0), fish.pos, fish.find_nearest_obstacle(obstacles), 2)
 
-            for fish in fishes:
-                fish.draw(displaysurface)
-                fish.update(dt, F_SPEED)
-                if RECT_FISH == True:
-                    pg.draw.rect(displaysurface, (0, 255, 0), fish.rect, 2)
-                if RADIUS == True:
-                    pg.draw.circle(displaysurface, (255, 0, 0), (int(fish.pos.x), int(fish.pos.y)), F_RANGE, 2)
-                if CLOSEST_OBSTACLE == True:
-                    if OBSTACLES == True:
-                        pg.draw.line(displaysurface, (0, 255, 0), fish.pos, fish.find_nearest_obstacle(obstacles), 2)
+    if GRID == True:
+        grid.visualize_grid()
+    
+    print(time.time() - start_time)
 
-                for obstacle in obstacles:
-                    if fish.rect.colliderect(obstacle.rect):
-                        collision_count += 1
-
-            if GRID == True:
-                grid.visualize_grid()
-
-            pg.display.update()
-            FramePerSec.tick(FPS)
-
-        O_RADIUS_collision_counts.append(collision_count)
-        
-    all_collision_counts.append(O_RADIUS_collision_counts)
-    print(all_collision_counts)
-
-average_collision_counts = [sum(counts) / len(counts) for counts in all_collision_counts]
-print(f"averaged collision count is: {average_collision_counts}")
-
-plt.plot(O_RADIUS_values, average_collision_counts)
-plt.xlabel('O_RADIUS')
-plt.ylabel('Averaged Collision Count')
-plt.title('Collision Evaluation')
-plt.show()
+    pg.display.update()
+    FramePerSec.tick(FPS)
