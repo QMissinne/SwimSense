@@ -30,23 +30,23 @@ Website: https://www.pygame.org/wiki/GettingStarted
 To run any of the scripts, navigate to the directory containing the script in your terminal and run the following command:
 
 ```
-python Final_Fish_Generic.py
+python SwimSense_Generic.py
 ```
 
 ```
-python Final_Fish_swarm.py
+python SwimSense_swarm.py
 ```
 ```
-python Final_Fish_obstacle.py
+python SwimSense_obstacle.py
 ```
 
-### Final_Fish_Generic:
+### SwimSense_Generic:
 This version of the file is made for the user to play around with values, and try different simulations without downloading or storing any data points. This is essentially the 'sandbox' of SwimSense.
 
-### Final_Fish_swarm:
+### SwimSense_swarm:
 Running this code will initiate the code in order to accumulate the data for the swarming evaluation presented in the final report for the course AE4350.
 
-### Final_Fish_obstacle: 
+### SwimSense_obstacle: 
 Running this code will initiate the code to accumulate the data for the obstacle avoidance evaluation presented in the final report for the course AE4350.
 
 ## Costomizations:
